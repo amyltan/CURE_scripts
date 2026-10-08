@@ -14,6 +14,7 @@ library('data.table')
 library('ggprism')
 library('ggh4x')
 library('dplyr')
+library('tibble')
 
 #read in reference files
 ## spu file is old to new genome version gene names
@@ -29,10 +30,10 @@ onto <- read.csv("~/Desktop/TAMU/Spurp_reference_files/Spurp_genome/Tu_Ontology_
 LOConto <- merge(onto, spu, by = "SPU") 
 
 #read in DEG file - RNAseq analysis results from DESeq2
-res <- read.csv("results-output/res18lmr24-MM-DEG-Oct25.csv") 
-colnames(res)[colnames(res) == "X"] <- "names"
+res <- read.table("res18lmr24-MM-DEG-Oct25.txt") 
+res <- rownames_to_columns(res, var = "names") #converts rownames to a named column
 
-#Class L1 names  
+#Class L1 names. These are the gene groups that you can investigate further.  
 table(onto$Class.L1)
 
 #Example: looking up differentially expressed genes in an ontological class and plotting the results ----
