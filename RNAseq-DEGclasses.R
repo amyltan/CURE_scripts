@@ -18,29 +18,31 @@ library('tibble')
 
 #read in reference files
 ## spu file is old to new genome version gene names
-spu <- read.table("~/Desktop/TAMU/Spurp_reference_files/Spurp_genome/conversion_references/refseqLocus_spu_IDmapping.txt", 
-                  sep = "\t", header = TRUE, quote = "")
+spu <- read.table("~/Desktop/R/CompBio_RNAseq_files/refseqLocus_spu_IDmapping.txt", 
+                  sep = "\t", header = TRUE, quote = "") #note: when you're using scripts off GitHub, you'll often need to do some pathway renaming to make sure things match your own computer
+head(spu) #use this to look at the top of the dataframe
 colnames(spu) <- c("names", "SPU", "sp_name")
-#note: when you're using scripts off GitHub, you'll often need to do some pathway renaming to make sure things match your own computer
 
 ## gene ontology file from Tu et al.
-onto <- read.csv("~/Desktop/TAMU/Spurp_reference_files/Spurp_genome/Tu_Ontology_SuppTableS2.csv")
+onto <- read.csv("~/Desktop/R/CompBio_RNAseq_files/Tu_Ontology_SuppTableS2.csv")
 
 ## combine name reference file with gene ontology file. This matches up LOC IDs with SPU IDs.
 LOConto <- merge(onto, spu, by = "SPU") 
 
 #read in DEG file - RNAseq analysis results from DESeq2
-res <- read.table("res18lmr24-MM-DEG-Oct25.txt") 
-res <- rownames_to_columns(res, var = "names") #converts rownames to a named column
+res <- read.table("low14-24hpi_vs_low14-0hpi.txt") 
+head(res)
+res <- rownames_to_column(res, var = "names")
+res$names <- str_remove(res$names, "gene-") #removing the "gene-" prefix from the names
 
-#Class L1 names. These are the gene groups that you can investigate further.  
+#Class L1 names  
 table(onto$Class.L1)
 
 #Example: looking up differentially expressed genes in an ontological class and plotting the results ----
-#Adhesion class search 
-df <- subset(LOConto, Class.L1 == "Immunity")
-dfDEG <- subset(res, names %in% df$names) 
-dfDEG <- na.omit(dfDEG)
+#Immune class search 
+df <- subset(LOConto, Class.L1 == "Immunity") #pick another class from the list above and substitute the name here! This creates a list of genes in a particular class.
+dfDEG <- subset(res, names %in% df$names) #pulls out genes from the results file that match the names in the class you chose above
+dfDEG <- na.omit(dfDEG) #remove genes that have NA values
 dim(dfDEG) #total number of genes in the list
 sum(dfDEG$padj <= 0.05 & abs(dfDEG$log2FoldChange) > 0.5) #how many genes are significantly different based on p-adj and log2FoldChange
 sum(dfDEG$log2FoldChange > 0.5) #How many genes are upregulated
@@ -51,6 +53,10 @@ sum(dfDEG$log2FoldChange < -0.5) #How many genes are downregulated
 dfDEG$DE <- "No change"
 dfDEG$DE[dfDEG$log2FoldChange > 0.5 & dfDEG$padj < 0.05] <- "Up"
 dfDEG$DE[dfDEG$log2FoldChange < -0.5 & dfDEG$padj < 0.05] <- "Down"
+
+#Create a list of colors and assign a color to each DE 
+de_colors <- c("coral2", "#69BE28", "darkgray") #note the different ways to use colors! You can call colors by name or use hexcodes to expand your color palette even further.
+names(de_colors) <- c("Up", "Down", "No change") #this assigns a color to the specific DE direction
 
 ## Use ggplot to plot the genes according to p-adj and LFC
 volcano <- ggplot(data = dfDEG, 
@@ -90,7 +96,10 @@ subset(dfDEG, ((DE == "Up" | DE == "Down") & (log2FoldChange > 3.5 | -log10(padj
 #Note: & is "and" operator (both are true) 
 #Note: | is "or" operator
 
+
 # Other things you can try: 
 # Can you find the genes with the greatest change in expression from 0 to 24 hpi?
 # Pick another csv file to look at. Compare the results from the same gene class. 
 ## Note that to do this, you can copy and paste the chunk of script above, but you'll want to change variable names so that you don't undo your work from above by assigning new data sets under those variables!
+# Can you figure out how to plot both sets of genes onto the same graph but keeping either colors or shapes of the points distinct so you can still see both results?
+
