@@ -1,5 +1,9 @@
-setwd("~/Desktop/R/MammaMia/RNAseq-MM/")
+# Set the working directory
+##change this to the location where you saved the reference and data files on your computer  
+setwd("~/Desktop/R/any/other/nested/folder/names") #syntax for Mac 
+setwd("c:/Documents/my/working/directory") #syntax for Windows
 
+# Load packages. If any are missing, use install.packages('name')
 library('ggplot2')
 library('ggrepel')
 library('ggbreak')
@@ -16,11 +20,12 @@ library('dplyr')
 spu <- read.table("~/Desktop/TAMU/Spurp_reference_files/Spurp_genome/conversion_references/refseqLocus_spu_IDmapping.txt", 
                   sep = "\t", header = TRUE, quote = "")
 colnames(spu) <- c("names", "SPU", "sp_name")
+#note: when you're using scripts off GitHub, you'll often need to do some pathway renaming to make sure things match your own computer
 
 ## gene ontology file from Tu et al.
 onto <- read.csv("~/Desktop/TAMU/Spurp_reference_files/Spurp_genome/Tu_Ontology_SuppTableS2.csv")
 
-## combine name reference file with gene ontology file
+## combine name reference file with gene ontology file. This matches up LOC IDs with SPU IDs.
 LOConto <- merge(onto, spu, by = "SPU") 
 
 #read in DEG file - RNAseq analysis results from DESeq2
@@ -83,3 +88,8 @@ geom_text_repel(data = dfDEG,
 subset(dfDEG, ((DE == "Up" | DE == "Down") & (log2FoldChange > 3.5 | -log10(padj) > 8)))
 #Note: & is "and" operator (both are true) 
 #Note: | is "or" operator
+
+# Other things you can try: 
+# Can you find the genes with the greatest change in expression from 0 to 24 hpi?
+# Pick another csv file to look at. Compare the results from the same gene class. 
+## Note that to do this, you can copy and paste the chunk of script above, but you'll want to change variable names so that you don't undo your work from above by assigning new data sets under those variables!
